@@ -1,0 +1,297 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "InvisibleLagGUI"
+screenGui.DisplayOrder = 9999
+screenGui.Enabled = true
+screenGui.Parent = playerGui
+
+local mainContainer = Instance.new("Frame")
+mainContainer.Name = "MainLagContainer"
+mainContainer.Size = UDim2.new(2, 0, 2, 0)
+mainContainer.Position = UDim2.new(0.8, 0, 0, 0)
+mainContainer.BackgroundTransparency = 1
+mainContainer.Visible = true
+mainContainer.Parent = screenGui
+
+local isActive = false
+local createdFrames = {}
+local lagConnections = {}
+
+local function triggerExtremeLag()
+    if isActive then return end
+    isActive = true
+    
+    print("[EXTREME LAG ACTIVATED] Creating massive invisible lag...")
+    
+    for i = 1, 4800 do
+        local frame = Instance.new("Frame")
+        frame.Name = "LagFrame_" .. i
+        frame.Size = UDim2.new(0, math.random(100, 300), 0, math.random(100, 300))
+        frame.Position = UDim2.new(
+            math.random(0, 2), math.random(-500, 500),
+            math.random(0, 2), math.random(-500, 500)
+        )
+        frame.BackgroundTransparency = 1
+        frame.BorderSizePixel = 0
+        frame.Visible = true
+        frame.ZIndex = 999
+        frame.Active = false
+        
+        for j = 1, 15 do
+            local childFrame = Instance.new("Frame")
+            childFrame.Size = UDim2.new(1, 0, 1, 0)
+            childFrame.BackgroundTransparency = 1
+            childFrame.Visible = true
+            childFrame.Active = false
+            childFrame.Parent = frame
+            
+            local textLabel = Instance.new("TextLabel")
+            textLabel.Size = UDim2.new(1, 0, 1, 0)
+            textLabel.Text = "LAG" .. string.rep("X", math.random(50, 200))
+            textLabel.TextTransparency = 1
+            textLabel.TextWrapped = true
+            textLabel.BackgroundTransparency = 1
+            textLabel.Visible = true
+            textLabel.Active = false
+            textLabel.Parent = childFrame
+            
+            for k = 1, 3 do
+                local extraLabel = Instance.new("TextLabel")
+                extraLabel.Size = UDim2.new(0.5, 0, 0.5, 0)
+                extraLabel.Position = UDim2.new(math.random(), 0, math.random(), 0)
+                extraLabel.Text = string.rep("L", math.random(100, 500))
+                extraLabel.TextTransparency = 1
+                extraLabel.BackgroundTransparency = 1
+                extraLabel.Visible = true
+                extraLabel.Active = false
+                extraLabel.Parent = childFrame
+            end
+        end
+        
+        frame.Parent = mainContainer
+        table.insert(createdFrames, frame)
+        
+        if i % 100 == 0 then
+            local extraFrame = Instance.new("Frame")
+            extraFrame.Size = UDim2.new(0, 500, 0, 500)
+            extraFrame.Position = UDim2.new(math.random(), 0, math.random(), 0)
+            extraFrame.BackgroundTransparency = 1
+            extraFrame.Visible = true
+            extraFrame.Active = false
+            
+            for r = 1, 10 do
+                local recursiveFrame = Instance.new("Frame")
+                recursiveFrame.Size = UDim2.new(1, 0, 1, 0)
+                recursiveFrame.BackgroundTransparency = 1
+                recursiveFrame.Visible = true
+                recursiveFrame.Active = false
+                recursiveFrame.Parent = extraFrame
+                
+                for s = 1, 5 do
+                    local deepFrame = Instance.new("Frame")
+                    deepFrame.Size = UDim2.new(0.2, 0, 0.2, 0)
+                    deepFrame.Position = UDim2.new(s * 0.2, 0, 0, 0)
+                    deepFrame.BackgroundTransparency = 1
+                    deepFrame.Visible = true
+                    deepFrame.Active = false
+                    deepFrame.Parent = recursiveFrame
+                end
+            end
+            
+            extraFrame.Parent = mainContainer
+            table.insert(createdFrames, extraFrame)
+        end
+    end
+    
+    local scrollingFrame = Instance.new("ScrollingFrame")
+    scrollingFrame.Name = "ExtremeScroller"
+    scrollingFrame.Size = UDim2.new(3, 0, 3, 0)
+    scrollingFrame.Position = UDim2.new(-1, 0, -1, 0)
+    scrollingFrame.BackgroundTransparency = 1
+    scrollingFrame.ScrollingEnabled = true
+    scrollingFrame.CanvasSize = UDim2.new(0, 0, 1000, 0)
+    scrollingFrame.ScrollBarThickness = 0
+    scrollingFrame.Visible = true
+    scrollingFrame.Active = false
+    scrollingFrame.Parent = mainContainer
+    
+    for i = 1, 2500 do
+        local item = Instance.new("Frame")
+        item.Size = UDim2.new(1, -10, 0, 15)
+        item.Position = UDim2.new(0, 5, 0, i * 20)
+        item.BackgroundTransparency = 1
+        item.Visible = true
+        item.Active = false
+        
+        for l = 1, 5 do
+            local layer = Instance.new("Frame")
+            layer.Size = UDim2.new(1, 0, 1, 0)
+            layer.BackgroundTransparency = 1
+            layer.Visible = true
+            layer.Active = false
+            layer.Parent = item
+            
+            local text = Instance.new("TextLabel")
+            text.Size = UDim2.new(1, 0, 1, 0)
+            text.Text = string.rep("LAG", math.random(10, 50))
+            text.TextTransparency = 1
+            text.TextWrapped = true
+            text.BackgroundTransparency = 1
+            text.Visible = true
+            text.Active = false
+            text.Parent = layer
+        end
+        
+        item.Parent = scrollingFrame
+        table.insert(createdFrames, item)
+    end
+    
+    local conn1 = RunService.RenderStepped:Connect(function()
+        for i, frame in pairs(createdFrames) do
+            if i % 50 == 0 then
+                frame.Position = UDim2.new(
+                    math.random(), math.random(-1000, 1000),
+                    math.random(), math.random(-1000, 1000)
+                )
+                
+                if i % 200 == 0 then
+                    frame.Size = UDim2.new(0, math.random(50, 500), 0, math.random(50, 500))
+                end
+            end
+        end
+    end)
+    
+    table.insert(lagConnections, conn1)
+    
+    local conn2 = RunService.Heartbeat:Connect(function()
+        for i = 1, 10 do
+            local tempFrame = Instance.new("Frame")
+            tempFrame.Size = UDim2.new(0, 100, 0, 100)
+            tempFrame.Position = UDim2.new(math.random(), 0, math.random(), 0)
+            tempFrame.BackgroundTransparency = 1
+            tempFrame.Visible = true
+            tempFrame.Active = false
+            tempFrame.Parent = mainContainer
+            
+            task.delay(0.1, function()
+                pcall(function() tempFrame:Destroy() end)
+            end)
+        end
+    end)
+    
+    table.insert(lagConnections, conn2)
+    
+    for i = 1, 5 do
+        local particleEmitter = Instance.new("ParticleEmitter")
+        particleEmitter.Enabled = true
+        particleEmitter.Texture = ""
+        particleEmitter.Transparency = NumberSequence.new(1)
+        particleEmitter.Rate = 5000
+        particleEmitter.Lifetime = NumberRange.new(0.1, 2)
+        particleEmitter.Speed = NumberRange.new(1, 100)
+        particleEmitter.Size = NumberSequence.new(NumberRange.new(1, 100))
+        particleEmitter.SpreadAngle = Vector2.new(360, 360)
+        particleEmitter.Parent = mainContainer
+        table.insert(createdFrames, particleEmitter)
+    end
+    
+    print("[EXTREME LAG COMPLETE] Game should be FROZEN!")
+    print("GUI is positioned OFF-SCREEN (can't click)")
+end
+
+local function clearLag()
+    if not isActive then return end
+    isActive = false
+    
+    print("[CLEARING LAG] This might take a moment...")
+    
+    for _, conn in pairs(lagConnections) do
+        pcall(function() conn:Disconnect() end)
+    end
+    lagConnections = {}
+    
+    local function destroyChunk(start, chunkSize)
+        local endIndex = math.min(start + chunkSize - 1, #createdFrames)
+        for i = start, endIndex do
+            local obj = createdFrames[i]
+            if obj and obj.Parent then
+                pcall(function() obj:Destroy() end)
+            end
+        end
+        return endIndex + 1
+    end
+    
+    local chunkSize = 200
+    local currentIndex = 1
+    local total = #createdFrames
+    
+    while currentIndex <= total do
+        currentIndex = destroyChunk(currentIndex, chunkSize)
+        RunService.RenderStepped:Wait()
+    end
+    
+    createdFrames = {}
+    
+    for _, child in pairs(mainContainer:GetChildren()) do
+        pcall(function() child:Destroy() end)
+    end
+    
+    print("[LAG CLEARED] Game should run normally")
+end
+
+local function setupChatDetection()
+    local function monitorPlayer(player)
+        player.Chatted:Connect(function(message)
+            local text = string.lower(message)
+            if string.find(text, "bet") and not isActive then
+                task.wait(0.5)
+                triggerExtremeLag()
+            end
+        end)
+    end
+    
+    for _, player in pairs(Players:GetPlayers()) do
+        monitorPlayer(player)
+    end
+    
+    Players.PlayerAdded:Connect(monitorPlayer)
+end
+
+local function setupConsole()
+    player.Chatted:Connect(function(message)
+        if string.lower(message) == "/extremelag" and not isActive then
+            triggerExtremeLag()
+        elseif string.lower(message) == "/stoplag" then
+            clearLag()
+        elseif string.lower(message) == "/laginfo" then
+            print("=== LAG INFO ===")
+            print("Active: " .. tostring(isActive))
+            print("Frames created: " .. #createdFrames)
+            print("Connections: " .. #lagConnections)
+        end
+    end)
+end
+
+setupChatDetection()
+setupConsole()
+
+game:GetService("CoreGui").DescendantRemoving:Connect(function()
+    if not screenGui.Parent then
+        clearLag()
+    end
+end)
+
+print("=== EXTREME LAG SCRIPT LOADED ===")
+print("Type 'bet' in chat to trigger EXTREME LAG")
+print("GUI is positioned OFF-SCREEN (can't click)")
+print("")
+print("Commands:")
+print("/extremelag - Manually trigger extreme lag")
+print("/stoplag - Clear all lag")
+print("/laginfo - Show lag status")
+print("")
+print("Warning: This will FREEZE your game!")
