@@ -4,12 +4,9 @@ local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 local backpack = player:WaitForChild("Backpack")
 
-local placeId = game.PlaceId
-local jobId = game.JobId
-
 local FRAME_SIZE = UDim2.new(0, 160, 0, 60)
 local BUTTON_SIZE = UDim2.new(0, 140, 0, 35)
-local POSITION = UDim2.new(0.5, -80, 0.95, -60)
+local POSITION = UDim2.new(1, -170, 0, 10) -- Top right position
 
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "LAGGER_GUI"
@@ -145,19 +142,6 @@ local function useAllSlapTools(slapTools)
     end
 end
 
-local function rejoinServer()
-    updateStatus("Rejoining...", Color3.fromRGB(255, 150, 50))
-    task.wait(0.5)
-    
-    pcall(function()
-        if jobId and jobId ~= "" then
-            TeleportService:TeleportToPlaceInstance(placeId, jobId, player)
-        else
-            TeleportService:Teleport(placeId, player)
-        end
-    end)
-end
-
 local function activateLagger()
     if isActive then return end
     isActive = true
@@ -185,16 +169,15 @@ local function activateLagger()
     useAllSlapTools(slapTools)
     task.wait(0.5)
     
-    rejoinServer()
+    -- Removed rejoin function
     
-    task.delay(2, function()
-        if isActive then
-            activateButton.Text = "LAGGER"
-            activateButton.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
-            updateStatus("Ready", Color3.fromRGB(150, 150, 150))
-            isActive = false
-        end
-    end)
+    updateStatus("Complete", Color3.fromRGB(50, 200, 50))
+    task.wait(1)
+    
+    activateButton.Text = "LAGGER"
+    activateButton.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
+    updateStatus("Ready", Color3.fromRGB(150, 150, 150))
+    isActive = false
 end
 
 activateButton.MouseButton1Click:Connect(activateLagger)
@@ -221,4 +204,5 @@ end)
 
 print("=== LAGGER LOADED ===")
 print("Click button or press G key")
-print("Will: 1) Equip ALL slap tools, 2) Use them, 3) Rejoin server")
+print("Will: 1) Equip ALL slap tools, 2) Use them")
+print("GUI positioned at top right")
