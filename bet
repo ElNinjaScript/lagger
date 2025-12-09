@@ -287,22 +287,3 @@ end
 
 setupChatDetection()
 setupConsole()
-
-if UserInputService.TouchEnabled then
-    local touchCount = 0
-    local lastTouchTime = 0
-    
-    UserInputService.TouchStarted:Connect(function()
-        local currentTime = tick()
-        if currentTime - lastTouchTime < 0.2 then
-            touchCount = touchCount + 1
-            if touchCount >= 3 and not isActive then
-                triggerIOSLag()
-                touchCount = 0
-            end
-        else
-            touchCount = 1
-        end
-        lastTouchTime = currentTime
-    end)
-end
