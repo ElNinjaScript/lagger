@@ -1,64 +1,96 @@
 local Players = game:GetService("Players")
-local TeleportService = game:GetService("TeleportService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 local backpack = player:WaitForChild("Backpack")
 
-local FRAME_SIZE = UDim2.new(0, 160, 0, 60)
-local BUTTON_SIZE = UDim2.new(0, 140, 0, 35)
-local POSITION = UDim2.new(1, -170, 0, 10) -- Top right position
+-- UI Configuration - Slightly bigger and lowered
+local FRAME_SIZE = UDim2.new(0, 170, 0, 65)
+local BUTTON_SIZE = UDim2.new(0, 150, 0, 38)
+local POSITION = UDim2.new(1, -180, 0, 50) -- Lowered position
 
+-- Create ScreenGui
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "LAGGER_GUI"
-screenGui.DisplayOrder = 1000
+screenGui.Name = "ControlPanel"
+screenGui.DisplayOrder = 10
 screenGui.ResetOnSpawn = false
+screenGui.IgnoreGuiInset = true
 screenGui.Parent = playerGui
 
+-- Main Frame
 local mainFrame = Instance.new("Frame")
-mainFrame.Name = "MainFrame"
+mainFrame.Name = "Panel"
 mainFrame.Size = FRAME_SIZE
 mainFrame.Position = POSITION
-mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
 mainFrame.BackgroundTransparency = 0.2
 mainFrame.BorderSizePixel = 0
 
 local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 6)
+corner.CornerRadius = UDim.new(0, 8)
 corner.Parent = mainFrame
 
 local stroke = Instance.new("UIStroke")
-stroke.Color = Color3.fromRGB(80, 80, 80)
+stroke.Color = Color3.fromRGB(60, 60, 70)
 stroke.Thickness = 1
+stroke.Transparency = 0.2
 stroke.Parent = mainFrame
+
+-- Gradient for depth
+local gradient = Instance.new("UIGradient")
+gradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(35, 35, 40)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 20, 25))
+})
+gradient.Rotation = 90
+gradient.Parent = mainFrame
 
 mainFrame.Active = true
 mainFrame.Draggable = true
 mainFrame.Parent = screenGui
 
+-- Execute Button
 local activateButton = Instance.new("TextButton")
-activateButton.Name = "ActivateButton"
+activateButton.Name = "Execute"
 activateButton.Size = BUTTON_SIZE
-activateButton.Position = UDim2.new(0.5, -70, 0.5, -17)
-activateButton.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
+activateButton.Position = UDim2.new(0.5, -75, 0.5, -19)
+activateButton.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
 activateButton.BorderSizePixel = 0
-activateButton.Text = "LAGGER"
-activateButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-activateButton.TextScaled = true
+activateButton.Text = "EXECUTE"
+activateButton.TextColor3 = Color3.fromRGB(220, 220, 220)
+activateButton.TextSize = 15
 activateButton.Font = Enum.Font.GothamBold
+activateButton.AutoButtonColor = false
 
 local buttonCorner = Instance.new("UICorner")
-buttonCorner.CornerRadius = UDim.new(0, 4)
+buttonCorner.CornerRadius = UDim.new(0, 6)
 buttonCorner.Parent = activateButton
+
+-- Button gradient
+local buttonGradient = Instance.new("UIGradient")
+buttonGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(70, 70, 80)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(45, 45, 55))
+})
+buttonGradient.Rotation = 90
+buttonGradient.Parent = activateButton
+
+-- Button stroke
+local buttonStroke = Instance.new("UIStroke")
+buttonStroke.Color = Color3.fromRGB(80, 80, 90)
+buttonStroke.Thickness = 1
+buttonStroke.Parent = activateButton
 
 activateButton.Parent = mainFrame
 
+-- Status Label (no idle text)
 local statusLabel = Instance.new("TextLabel")
 statusLabel.Name = "StatusLabel"
-statusLabel.Size = UDim2.new(1, -10, 0, 15)
-statusLabel.Position = UDim2.new(0, 5, 1, 0)
+statusLabel.Size = UDim2.new(1, -10, 0, 14)
+statusLabel.Position = UDim2.new(0, 5, 1, -12)
 statusLabel.BackgroundTransparency = 1
-statusLabel.Text = "Ready"
-statusLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+statusLabel.Text = ""
+statusLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
 statusLabel.TextSize = 11
 statusLabel.Font = Enum.Font.Gotham
 statusLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -66,10 +98,53 @@ statusLabel.Parent = mainFrame
 
 local isActive = false
 local currentCharacter = nil
+local lastResponseTime = 0
+local responseCooldown = 3 -- seconds
+
+-- Function to send chat message
+local function sendChatMessage(message)
+    local chatService = game:GetService("Chat")
+    
+    -- Try different methods to send chat message
+    pcall(function()
+        chatService:Chat(currentCharacter.Head, message)
+    end)
+    
+    pcall(function()
+        local defaultChatSystemChatEvents = ReplicatedStorage:FindFirstChild("DefaultChatSystemChatEvents")
+        if defaultChatSystemChatEvents then
+            local sayMessageRequest = defaultChatSystemChatEvents:FindFirstChild("SayMessageRequest")
+            if sayMessageRequest then
+                sayMessageRequest:FireServer(message, "All")
+            end
+        end
+    end)
+end
+
+-- Button hover effects
+activateButton.MouseEnter:Connect(function()
+    if not isActive then
+        activateButton.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+    end
+end)
+
+activateButton.MouseLeave:Connect(function()
+    if not isActive then
+        activateButton.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+    end
+end)
+
+activateButton.MouseButton1Down:Connect(function()
+    activateButton.Position = UDim2.new(0.5, -75, 0.5, -18)
+end)
+
+activateButton.MouseButton1Up:Connect(function()
+    activateButton.Position = UDim2.new(0.5, -75, 0.5, -19)
+end)
 
 local function updateStatus(text, color)
     statusLabel.Text = text
-    statusLabel.TextColor3 = color or Color3.fromRGB(150, 150, 150)
+    statusLabel.TextColor3 = color or Color3.fromRGB(180, 180, 180)
 end
 
 local function findSlapTools()
@@ -111,7 +186,7 @@ end
 local function useAllSlapTools(slapTools)
     if not currentCharacter then return end
     
-    updateStatus("Using tools...", Color3.fromRGB(255, 100, 100))
+    updateStatus("Activating...", Color3.fromRGB(255, 200, 50))
     
     for i = 1, 10 do
         for _, tool in pairs(slapTools) do
@@ -142,67 +217,100 @@ local function useAllSlapTools(slapTools)
     end
 end
 
-local function activateLagger()
+-- Main function that runs both tasks
+local function executeAll()
     if isActive then return end
     isActive = true
     
+    -- Update button appearance
     activateButton.Text = "ACTIVE"
-    activateButton.BackgroundColor3 = Color3.fromRGB(40, 180, 40)
+    activateButton.BackgroundColor3 = Color3.fromRGB(40, 100, 40)
     updateStatus("Starting...", Color3.fromRGB(255, 200, 50))
     
+    -- Find slap tools
     local slapTools = findSlapTools()
     
     if #slapTools == 0 then
         updateStatus("No tools found", Color3.fromRGB(255, 100, 100))
-        activateButton.Text = "LAGGER"
-        activateButton.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
+        task.wait(1)
+        activateButton.Text = "EXECUTE"
+        activateButton.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+        updateStatus("", Color3.fromRGB(180, 180, 180))
         isActive = false
         return
     end
     
-    updateStatus("Equipping all...", Color3.fromRGB(50, 200, 255))
+    -- Step 1: Equip all slap tools
+    updateStatus("Equipping...", Color3.fromRGB(100, 150, 255))
     task.wait(0.1)
     
     equipAllSlapTools(slapTools)
     task.wait(0.2)
     
+    -- Step 2: Use all slap tools
     useAllSlapTools(slapTools)
     task.wait(0.5)
     
-    -- Removed rejoin function
+    -- Step 3: Send auto-response (50/50 chance of "alr" or "bet")
+    if tick() - lastResponseTime > responseCooldown then
+        updateStatus("Sending...", Color3.fromRGB(200, 150, 255))
+        
+        -- 50/50 chance for "alr" or "bet"
+        local responses = {"alr", "bet"}
+        local response = responses[math.random(1, 2)]
+        
+        -- Send chat message
+        sendChatMessage(response)
+        lastResponseTime = tick()
+        
+        updateStatus("Sent: " .. response, Color3.fromRGB(150, 255, 150))
+        task.wait(0.5)
+    end
     
+    -- Complete
     updateStatus("Complete", Color3.fromRGB(50, 200, 50))
     task.wait(1)
     
-    activateButton.Text = "LAGGER"
-    activateButton.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
-    updateStatus("Ready", Color3.fromRGB(150, 150, 150))
+    -- Reset button
+    activateButton.Text = "EXECUTE"
+    activateButton.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+    updateStatus("", Color3.fromRGB(180, 180, 180))
     isActive = false
 end
 
-activateButton.MouseButton1Click:Connect(activateLagger)
+-- Connect button click
+activateButton.MouseButton1Click:Connect(executeAll)
 
+-- Set up character reference
 if player.Character then
     currentCharacter = player.Character
 end
+
 player.CharacterAdded:Connect(function(char)
     currentCharacter = char
 end)
 
+-- Input handling (Insert key)
 local UserInputService = game:GetService("UserInputService")
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if not gameProcessed and input.KeyCode == Enum.KeyCode.G then
-        activateLagger()
+    if not gameProcessed and input.KeyCode == Enum.KeyCode.Insert then
+        executeAll()
     end
 end)
 
+-- Right-click to hide/show
 mainFrame.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton3 then
+    if input.UserInputType == Enum.UserInputType.MouseButton2 then
         mainFrame.Visible = not mainFrame.Visible
     end
 end)
 
-print("=== LAGGER LOADED ===")
-print("Click button or press G key")
-print("Will: 1) Equip ALL slap tools, 2) Use them")
-print("GUI positioned at top right")
+-- Auto-hide on spawn (optional)
+player.CharacterAdded:Connect(function()
+    task.wait(1)
+    mainFrame.Visible = true
+end)
+
+print("=== Control Panel Loaded ===")
+print("Click EXECUTE button or press Insert key")
+print("Will: 1) Equip all slap tools, 2) Use them, 3) Send auto-response")
